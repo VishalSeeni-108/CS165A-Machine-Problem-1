@@ -3,10 +3,16 @@ import pandas as pd
 import numpy as np
 
 trainingData = pd.read_excel(sys.argv[1])
-print(trainingData['temperature'])
 
 # Classifications
-# 1. Use same method as below to collect all classifications
+# 1. Count the number of each classification
+#data = np.array([], dtype =[('name', 'U10'), ('occurances', 'i10')])
+weatherDescriptionCounts = pd.Series(trainingData['weather_descriptions'].value_counts())
+
+weatherDescriptionProb = weatherDescriptionCounts.copy(deep=True)
+weatherDescriptionProb = weatherDescriptionProb.apply(lambda x : x/(weatherDescriptionCounts.sum())) #p(Ck)
+
+
 
 # Categorical Data
 # 1. Run through series counting each attribute
