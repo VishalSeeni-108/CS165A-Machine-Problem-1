@@ -4,20 +4,33 @@ import numpy as np
 
 trainingData = pd.read_excel(sys.argv[1])
 
+def categoricalConditionalProb(category, descriptor):
+        tempCounts = pd.Series(trainingData.loc[trainingData['weather_descriptions'] == category, descriptor].value_counts())
+
+        tempProbs = tempCounts.copy(deep = True)
+        tempProbs = tempProbs.apply(lambda x : x / (tempCounts.sum()))
+        print("Category: " + category)
+        print(tempCounts)
+        print(tempProbs)
+        print('\n')
+
 # Classifications
 # 1. Count the number of each classification
-#data = np.array([], dtype =[('name', 'U10'), ('occurances', 'i10')])
 weatherDescriptionCounts = pd.Series(trainingData['weather_descriptions'].value_counts())
 
 weatherDescriptionProb = weatherDescriptionCounts.copy(deep=True)
 weatherDescriptionProb = weatherDescriptionProb.apply(lambda x : x/(weatherDescriptionCounts.sum())) #p(Ck)
 
-
+print(weatherDescriptionCounts.index)
 
 # Categorical Data
-# 1. Run through series counting each attribute
-#     a. Store attributes in a numpy array and count in another array
-#     b. If an attribute is not in the array, concatenate to the end, otherwise increment associated ValueError
-# 2. Calculate probabilites given each classification
-# 3. Multiply
+# First take subset from each classification
+# Count number of each attribute
+
+#humidity 
+print(pd.Series(trainingData['weather_descriptions'].unique()))
+categoricalConditionalProb('Clear', 'humidity')
+categoricalConditionalProb('Sunny', 'humidity')
+
+
 
