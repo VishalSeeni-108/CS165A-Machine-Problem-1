@@ -22,8 +22,9 @@ def conditionalProb(classification, humidity, cloudcover, precipitation): #pull 
 
         return classProb*(humidityProb * cloudcoverProbs * precipitationProbs)
 
-
-
+def classificationProb(humidity, cloudcover, precipitation):
+        return (weatherDescriptionCounts.index).to_series().apply(lambda x : conditionalProb(x, humidity, cloudcover, precipitation))
+                                                                   
 # Classifications
 # 1. Count the number of each classification (note that the classification is for FUTURE weather description)
 weatherDescriptionCounts = pd.Series(trainingData['weather_descriptions'].value_counts())
@@ -39,5 +40,6 @@ weatherDescriptionProb = weatherDescriptionProb.apply(lambda x : x/(weatherDescr
 humidityConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'humidity'))
 cloudcoverConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'cloudcover'))
 precipitationConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'precip'))
-print(conditionalProb('Clear', 'Moderate humidity', 'Mostly clear', 'No precipitation'))
-
+print(classificationProb('Moderate humidity', 'Mostly clear', 'No precipitation').idxmax())
+print(classificationProb('Moderate humidity', 'Partly cloudy', 'No precipitation').idxmax())
+print(classificationProb('High humidity', 'Mostly cloudy', 'Light precipitation').idxmax())
