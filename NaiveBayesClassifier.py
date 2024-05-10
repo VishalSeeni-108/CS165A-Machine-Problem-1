@@ -14,6 +14,14 @@ def categoricalConditionalProb(category, descriptor):
         # print('\n')
         return tempProbs
 
+def conditionalProb(classification, humidity, cloudcover, precipitation): #pull conditional probabilities for given attributes and return probability for each classification
+        classProb = weatherDescriptionProb[classification]
+        humidityProb = humidityConditionalProbs[humidity][classification]
+        cloudcoverProbs = cloudcoverConditionalProbs[cloudcover][classification]
+        precipitationProbs = precipitationConditionalProbs[precipitation][classification]
+
+        return classProb*(humidityProb * cloudcoverProbs * precipitationProbs)
+
 
 
 # Classifications
@@ -27,19 +35,9 @@ weatherDescriptionProb = weatherDescriptionProb.apply(lambda x : x/(weatherDescr
 
 
 
-#humidity 
-# print(pd.Series(trainingData['weather_descriptions'].unique()))
-# print(categoricalConditionalProb('Clear', 'humidity'))
-# print(categoricalConditionalProb('Sunny', 'humidity'))
-# print(categoricalConditionalProb('Light freezing rain', 'precip'))
-
-#for a given descriptor, we need to apply categoricalConditiaonalProb with all categories, then store it in an associated descriptor datafram
-
-#pd.concat(humidityConditionalProbs, (((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'humidity'))).to_frame().T)
+#Calculating feature conditional probabilities 
 humidityConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'humidity'))
 cloudcoverConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'cloudcover'))
 precipitationConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'precip'))
-print(humidityConditionalProbs)
-print(cloudcoverConditionalProbs)
-print(precipitationConditionalProbs)
+print(conditionalProb('Clear', 'Moderate humidity', 'Mostly clear', 'No precipitation'))
 
