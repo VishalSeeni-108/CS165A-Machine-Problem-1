@@ -22,60 +22,60 @@ def numericalConditionalProb(category, descriptor, value):
         categoryData = pd.Series(trainingData.loc[trainingData['weather_descriptions'].shift(periods=-1) == category, descriptor]) #Pulls temperatures for which next day is given category
         return (1 / (math.sqrt(2*math.pi*(math.pow(categoryData.std(), 2))))*(math.pow(math.e, -((math.pow(value - categoryData.mean(), 2))/(2*(math.pow(categoryData.std(), 2)))))))        
 
-def conditionalProb(classification, humidity, cloudcover, precipitation): #pull conditional probabilities for given attributes and return probability for each classification
+def conditionalProb(classification, humidity, cloudcover, precipitation, temperature): #pull conditional probabilities for given attributes and return probability for each classification
         classProb = weatherDescriptionProb[classification]
         humidityProb = humidityConditionalProbs[humidity][classification]
-        cloudcoverProbs = cloudcoverConditionalProbs[cloudcover][classification]
-        precipitationProbs = precipitationConditionalProbs[precipitation][classification]
+        cloudcoverProb = cloudcoverConditionalProbs[cloudcover][classification]
+        precipitationProb = precipitationConditionalProbs[precipitation][classification]
+        temperatureProb = numericalConditionalProb(classification, 'temperature', temperature)
 
-        return classProb*(humidityProb * cloudcoverProbs * precipitationProbs)
+        return classProb*(humidityProb * cloudcoverProb * precipitationProb * temperatureProb)
 
-def classificationProb(humidity, cloudcover, precipitation):
-        return (weatherDescriptionCounts.index).to_series().apply(lambda x : conditionalProb(x, humidity, cloudcover, precipitation))
+def classificationProb(humidity, cloudcover, precipitation, temperature):
+        return (weatherDescriptionCounts.index).to_series().apply(lambda x : conditionalProb(x, humidity, cloudcover, precipitation, temperature))
                                                                    
 #Calculate classification probabilities
 weatherDescriptionCounts = pd.Series(trainingData['weather_descriptions'].value_counts())
 weatherDescriptionProb = weatherDescriptionCounts.copy(deep=True)
 weatherDescriptionProb = weatherDescriptionProb.apply(lambda x : x/(weatherDescriptionCounts.sum())) #p(Ck)
 
-#Calculating feature conditional probabilities 
+#Calculating categorical feature conditional probabilities 
 humidityConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'humidity'))
 cloudcoverConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'cloudcover'))
 precipitationConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'precip'))
 
-print(numericalConditionalProb('Clear', 'temperature', 19))
-
 #Read in test files
-# testFileList = list()
-# for file in pl.Path(sys.argv[2]).iterdir(): 
-#         testFileList.append(file.name)
+testFileList = list()
+for file in pl.Path(sys.argv[2]).iterdir(): 
+        testFileList.append(file.name)
 
-# numbers = re.compile(r'(\d+)')
-# def numericalSort(value):
-#     parts = numbers.split(value)
-#     parts[1::2] = map(int, parts[1::2])
-#     return parts
+numbers = re.compile(r'(\d+)')
+def numericalSort(value):
+    parts = numbers.split(value)
+    parts[1::2] = map(int, parts[1::2])
+    return parts
 
 # #Make predictions
-# testFileList.sort(key=numericalSort)
+testFileList.sort(key=numericalSort)
 
 #COMMENT OUT BEFORE SUBMISSION
 #Calculate accuracy in parallel
-# truthFile = pd.read_json('ground_truth.json')
-# accuracyIndex = 0
-# accuracyCounter = 0
-# for file in testFileList: 
-#        testData = pd.read_excel('tests/' + file)
-#        testHumidity = testData['humidity'][27]
-#        testCloudCover = testData['cloudcover'][27]
-#        testPrecipitation = testData['precip'][27]
-#        prediction = classificationProb(testHumidity, testCloudCover, testPrecipitation).idxmax()
-#        if prediction == (truthFile[0][accuracyIndex]):
-#               accuracyCounter += 1
+truthFile = pd.read_json('ground_truth.json')
+accuracyIndex = 0
+accuracyCounter = 0
+for file in testFileList: 
+       testData = pd.read_excel('tests/' + file)
+       testHumidity = testData['humidity'][27]
+       testCloudCover = testData['cloudcover'][27]
+       testPrecipitation = testData['precip'][27]
+       testTemperature = testData['temperature'][27]
+       prediction = classificationProb(testHumidity, testCloudCover, testPrecipitation, testTemperature).idxmax()
+       if prediction == (truthFile[0][accuracyIndex]):
+              accuracyCounter += 1
               
-#        accuracyIndex +=1              
-#        print(prediction)
+       accuracyIndex +=1              
+       #print(prediction)
 
-# accuracy = accuracyCounter / 1000
-# print(accuracy)
+accuracy = accuracyCounter / 1000
+print(accuracy)
 
