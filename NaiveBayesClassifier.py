@@ -17,7 +17,7 @@ def numericalConditionalProb(category, descriptor, value):
         return (1 / (math.sqrt(2*math.pi*(math.pow(categoryData.std(), 2))))*(math.pow(math.e, -((math.pow(value - categoryData.mean(), 2))/(2*(math.pow(categoryData.std(), 2)))))))        
 
 def conditionalProb(classification, description, humidity, cloudcover, precipitation, temperature, pressure): #pull conditional probabilities for given attributes and return probability for each classification
-        classProb = weatherDescriptionProb[classification]
+        classProb = weatherDescriptionProbs[classification]
         descriptionProb = 1
         descriptionProb2 = 1
         descriptionProb3 = 1
@@ -37,22 +37,20 @@ def conditionalProb(classification, description, humidity, cloudcover, precipita
 
 def classificationProb(description, humidity, cloudcover, precipitation, temperature, pressure):
         #Previous day 
-        oneDayBefore = (weatherDescriptionCounts.index).to_series().apply(lambda x : conditionalProb(x, description, humidity, cloudcover, precipitation, temperature, pressure))
+        oneDayBefore = (weatherDescriptionProbs.index).to_series().apply(lambda x : conditionalProb(x, description, humidity, cloudcover, precipitation, temperature, pressure))
         return oneDayBefore
                                                                    
 #Calculate classification probabilities
-weatherDescriptionCounts = pd.Series(trainingData['weather_descriptions'].value_counts())
-weatherDescriptionProb = weatherDescriptionCounts.copy(deep=True)
-weatherDescriptionProb = weatherDescriptionProb.apply(lambda x : x/(weatherDescriptionCounts.sum())) #p(Ck)
+weatherDescriptionProbs = pd.Series(trainingData['weather_descriptions'].value_counts(normalize=True))
 
 #Calculating categorical feature conditional probabilities 
-descriptionConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'weather_descriptions', 1))
-humidityConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'humidity', 1))
-cloudcoverConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'cloudcover', 1))
-precipitationConditionalProbs = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'precip', 1))
+descriptionConditionalProbs = ((weatherDescriptionProbs.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'weather_descriptions', 1))
+humidityConditionalProbs = ((weatherDescriptionProbs.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'humidity', 1))
+cloudcoverConditionalProbs = ((weatherDescriptionProbs.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'cloudcover', 1))
+precipitationConditionalProbs = ((weatherDescriptionProbs.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'precip', 1))
 
-descriptionConditionalProbs2 = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'weather_descriptions', 2))
-descriptionConditionalProbs3 = ((weatherDescriptionCounts.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'weather_descriptions', 3))
+descriptionConditionalProbs2 = ((weatherDescriptionProbs.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'weather_descriptions', 2))
+descriptionConditionalProbs3 = ((weatherDescriptionProbs.index).to_series()).apply(lambda x : categoricalConditionalProb(x, 'weather_descriptions', 3))
 
 #Read in test files
 testFileList = list()
