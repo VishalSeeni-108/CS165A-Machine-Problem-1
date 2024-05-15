@@ -16,17 +16,17 @@ def numericalConditionalProb(category, descriptor, value):
         categoryData = pd.Series(trainingData.loc[trainingData['weather_descriptions'].shift(periods=-1) == category, descriptor]) #Pulls temperatures for which next day is given category
         return (1 / (math.sqrt(2*math.pi*(math.pow(categoryData.std(), 2))))*(math.pow(math.e, -((math.pow(value - categoryData.mean(), 2))/(2*(math.pow(categoryData.std(), 2)))))))        
 
-def conditionalProb(classification, description, humidity, cloudcover, precipitation, temperature, pressure): #pull conditional probabilities for given attributes and return probability for each classification
+def conditionalProb(classification, description, humidity, cloudcover, precipitation, temperature, pressure, description2, description3): #pull conditional probabilities for given attributes and return probability for each classification
         classProb = weatherDescriptionProbs[classification]
         descriptionProb = 1
         descriptionProb2 = 1
         descriptionProb3 = 1
         if(description in descriptionConditionalProbs.index):
                 descriptionProb += descriptionConditionalProbs[description][classification]
-        if(description in descriptionConditionalProbs2.index):
-                descriptionProb2 += descriptionConditionalProbs2[description][classification]
-        if(description in descriptionConditionalProbs3.index):
-                descriptionProb3 += descriptionConditionalProbs3[description][classification]
+        if(description2 in descriptionConditionalProbs2.index):
+                descriptionProb2 += descriptionConditionalProbs2[description2][classification]
+        if(description3 in descriptionConditionalProbs3.index):
+                descriptionProb3 += descriptionConditionalProbs3[description3][classification]
         humidityProb = humidityConditionalProbs[humidity][classification]
         cloudcoverProb = cloudcoverConditionalProbs[cloudcover][classification]
         precipitationProb = precipitationConditionalProbs[precipitation][classification]
@@ -35,9 +35,9 @@ def conditionalProb(classification, description, humidity, cloudcover, precipita
 
         return classProb*(descriptionProb * humidityProb * cloudcoverProb * precipitationProb * temperatureProb * pressureProb * descriptionProb2 * descriptionProb3)
 
-def classificationProb(description, humidity, cloudcover, precipitation, temperature, pressure):
+def classificationProb(description, humidity, cloudcover, precipitation, temperature, pressure, description2, description3):
         #Previous day 
-        oneDayBefore = (weatherDescriptionProbs.index).to_series().apply(lambda x : conditionalProb(x, description, humidity, cloudcover, precipitation, temperature, pressure))
+        oneDayBefore = (weatherDescriptionProbs.index).to_series().apply(lambda x : conditionalProb(x, description, humidity, cloudcover, precipitation, temperature, pressure, description2, description3))
         return oneDayBefore
                                                                    
 #Calculate classification probabilities
@@ -79,7 +79,11 @@ for file in testFileList:
        testPrecipitation = testData['precip'][27]
        testTemperature = testData['temperature'][27]
        testPressure = testData['pressure'][27]
-       prediction = classificationProb(testDescriptions, testHumidity, testCloudCover, testPrecipitation, testTemperature, testPressure).idxmax()
+
+       testDescriptions2 = testData['weather_descriptions'][26]
+       testDescriptions3 = testData['weather_descriptions'][25]
+
+       prediction = classificationProb(testDescriptions, testHumidity, testCloudCover, testPrecipitation, testTemperature, testPressure, testDescriptions2, testDescriptions3).idxmax()
        if prediction == (truthFile[0][accuracyIndex]):
               accuracyCounter += 1
               
